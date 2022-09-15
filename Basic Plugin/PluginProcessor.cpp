@@ -65,7 +65,7 @@ int TimAudioProcessor::getCurrentProgram()
     return 0;
 }
 
-void TimAudioProcessor::setCurrentProgram (int index)
+void TimAudioProcessor::setCurrentProgram(int index)
 {
     juce::ignoreUnused (index);
 }
@@ -76,17 +76,17 @@ const juce::String TimAudioProcessor::getProgramName (int index)
     return {};
 }
 
-void TimAudioProcessor::changeProgramName(int index, const juce::String& newName)
+void TimAudioProcessor::changeProgramName(int index, const juce::String& new_name)
 {
-    juce::ignoreUnused (index, newName);
+    juce::ignoreUnused (index, new_name);
 }
 
 //==============================================================================
-void TimAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
+void TimAudioProcessor::prepareToPlay(double sample_rate, int samplesPerBlock)
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
-    juce::ignoreUnused (sampleRate, samplesPerBlock);
+    juce::ignoreUnused (sample_rate, samplesPerBlock);
 }
 
 void TimAudioProcessor::releaseResources()

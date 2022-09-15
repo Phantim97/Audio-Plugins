@@ -2,13 +2,8 @@
 #include "PluginEditor.h"
 
 //==============================================================================
-TimAudioProcessor::TimAudioProcessor()
-     : AudioProcessor (BusesProperties()
-     #if ! JucePlugin_IsMidiEffect
-     #if ! JucePlugin_IsSynth.withInput("Input",  juce::AudioChannelSet::stereo(), true)
-     #endif.withOutput ("Output", juce::AudioChannelSet::stereo(), true)
-     #endif
-		)
+TimAudioProcessor::TimAudioProcessor():
+	AudioProcessor(BusesProperties().withOutput("Output", juce::AudioChannelSet::stereo(), true))
 {
 }
 
@@ -24,29 +19,17 @@ const juce::String TimAudioProcessor::getName() const
 
 bool TimAudioProcessor::acceptsMidi() const
 {
-   #if JucePlugin_WantsMidiInput
     return true;
-   #else
-    return false;
-   #endif
 }
 
 bool TimAudioProcessor::producesMidi() const
 {
-   #if JucePlugin_ProducesMidiOutput
-    return true;
-   #else
     return false;
-   #endif
 }
 
 bool TimAudioProcessor::isMidiEffect() const
 {
-   #if JucePlugin_IsMidiEffect
-    return true;
-   #else
     return false;
-   #endif
 }
 
 double TimAudioProcessor::getTailLengthSeconds() const
@@ -65,28 +48,29 @@ int TimAudioProcessor::getCurrentProgram()
     return 0;
 }
 
-void TimAudioProcessor::setCurrentProgram (int index)
+void TimAudioProcessor::setCurrentProgram(int index)
 {
-    juce::ignoreUnused (index);
+    juce::ignoreUnused(index);
 }
 
-const juce::String TimAudioProcessor::getProgramName (int index)
+const juce::String TimAudioProcessor::getProgramName(int index)
 {
     juce::ignoreUnused (index);
     return {};
 }
 
-void TimAudioProcessor::changeProgramName(int index, const juce::String& newName)
+void TimAudioProcessor::changeProgramName(int index, const juce::String& new_name)
 {
-    juce::ignoreUnused (index, newName);
+    juce::ignoreUnused(index, new_name);
 }
 
 //==============================================================================
-void TimAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
+void TimAudioProcessor::prepareToPlay(const double sample_rate, const int samples_per_block)
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
-    juce::ignoreUnused (sampleRate, samplesPerBlock);
+    audio_engine_.prepare({ sample_rate, static_cast<juce::uint32>(samples_per_block), 2 });
+    midi_msg_collector_.reset(sample_rate);
 }
 
 void TimAudioProcessor::releaseResources()
@@ -95,12 +79,8 @@ void TimAudioProcessor::releaseResources()
     // spare memory, etc.
 }
 
-bool TimAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
+bool TimAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
 {
-  #if JucePlugin_IsMidiEffect
-    juce::ignoreUnused (layouts);
-    return true;
-  #else
     // This is the place where you check if the layout is supported.
     // In this template code we only support mono or stereo.
     // Some plugin hosts, such as certain GarageBand versions, will only
@@ -111,49 +91,27 @@ bool TimAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) cons
         return false;
     }
 
-    // This checks if the input layout matches the output layout
-   #if ! JucePlugin_IsSynth
-    if (layouts.getMainOutputChannelSet() != layouts.getMainInputChannelSet())
-    {
-        return false;
-    }
-   #endif
-
     return true;
-  #endif
 }
 
-void TimAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+void TimAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi_messages)
 {
-    juce::ignoreUnused (midiMessages);
-
     juce::ScopedNoDenormals no_denormals;
     const int total_num_input_channels = getTotalNumInputChannels();
     const int total_num_output_channels = getTotalNumOutputChannels();
 
-    // In case we have more outputs than inputs, this code clears any output
-    // channels that didn't contain input data, (because these aren't
-    // guaranteed to be empty - they may contain garbage).
-    // This is here to avoid people getting screaming feedback
-    // when they first compile a plugin, but obviously you don't need to keep
-    // this code if your algorithm always overwrites all the output channels.
-    for (int i = total_num_input_channels; i < total_num_output_channels; ++i)
+    midi_msg_collector_.removeNextBlockOfMessages(midi_messages, buffer.getNumSamples());
+
+    for (int i = total_num_input_channels; i < total_num_output_channels; i++)
     {
         buffer.clear(i, 0, buffer.getNumSamples());
     }
 
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
-    for (int channel = 0; channel < total_num_input_channels; ++channel)
-    {
-        float* channel_data = buffer.getWritePointer (channel);
-        juce::ignoreUnused (channel_data);
-        // ..do something to the data...
-    }
+    //Render to Audio Engine
+    audio_engine_.renderNextBlock(buffer, midi_messages, 0, buffer.getNumSamples());
+
+    //Render to Oscilloscope
+    scope_data_collector_.process(buffer.getReadPointer(0), buffer.getNumSamples());
 }
 
 //==============================================================================
@@ -168,23 +126,23 @@ juce::AudioProcessorEditor* TimAudioProcessor::createEditor()
 }
 
 //==============================================================================
-void TimAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
+void TimAudioProcessor::getStateInformation(juce::MemoryBlock& dest_data)
 {
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
-    juce::ignoreUnused (destData);
+    juce::ignoreUnused (dest_data);
 }
 
-void TimAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
+void TimAudioProcessor::setStateInformation(const void* data, int size_in_bytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
-    juce::ignoreUnused (data, sizeInBytes);
+    juce::ignoreUnused (data, size_in_bytes);
 }
 
 //==============================================================================
-// This creates new instances of the plugin..
+// This creates new instances of the plugin. Function name must stay the same
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new TimAudioProcessor();

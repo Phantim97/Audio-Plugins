@@ -15,7 +15,7 @@ public:
     ~TimAudioProcessor() override;
 
     //==============================================================================
-    void prepareToPlay(double sampleRate, int samplesPerBlock) override;
+    void prepareToPlay(double sample_rate, int samples_per_block) override;
     void releaseResources() override;
 
     bool isBusesLayoutSupported(const BusesLayout& layouts) const override;
@@ -40,9 +40,9 @@ public:
     int getCurrentProgram() override;
     void setCurrentProgram(int index) override;
     const juce::String getProgramName(int index) override;
-    void changeProgramName (int index, const juce::String& newName) override;
+    void changeProgramName (int index, const juce::String& new_name) override;
 
     //==============================================================================
-    void getStateInformation(juce::MemoryBlock& destData) override;
-    void setStateInformation(const void* data, int sizeInBytes) override;
+    void getStateInformation(juce::MemoryBlock& dest_data) override;
+    void setStateInformation(const void* data, int size_in_bytes) override;
 };

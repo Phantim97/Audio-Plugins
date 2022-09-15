@@ -45,11 +45,11 @@ juce_add_plugin(DSPPlugin
     IS_SYNTH TRUE                               # Is this a synth or an effect?
     NEEDS_MIDI_INPUT TRUE                       # Does the plugin need midi input?
     NEEDS_MIDI_OUTPUT FALSE                     # Does the plugin need midi output?
-    IS_MIDI_EFFECT TRUE                         # Is this plugin a MIDI effect?
+    IS_MIDI_EFFECT FALSE                         # Is this plugin a MIDI effect?
     EDITOR_WANTS_KEYBOARD_FOCUS FALSE           # Does the editor need keyboard focus?
     COPY_PLUGIN_AFTER_BUILD FALSE               # Should the plugin be installed to a default location after building?
     PLUGIN_MANUFACTURER_CODE Phtm               # A four-character manufacturer id with at least one upper-case character
-    PLUGIN_CODE Phtm                            # A unique four-character plugin id with exactly one upper-case character                                              # GarageBand 10.3 requires the first letter to be upper-case, and the remaining letters to be lower-case
+    PLUGIN_CODE Osci                            # A unique four-character plugin id with exactly one upper-case character                                              # GarageBand 10.3 requires the first letter to be upper-case, and the remaining letters to be lower-case
     FORMATS AU VST3 Standalone                  # The formats to build. Other valid formats are: AAX Unity VST AU AUv3
     PRODUCT_NAME "DSP Plugin")                # The name of the final executable, which can differ from the target name
 
@@ -69,7 +69,7 @@ juce_add_plugin(DSPPlugin
 target_sources(DSPPlugin
     PRIVATE
         PluginEditor.cpp
-        PluginProcessor.cpp)
+        PluginProcessor.cpp "Voice.h" "Oscilloscope.h" "AudioEngine.h" "AudioBufferQueue.h")
 
 # `target_compile_definitions` adds some preprocessor definitions to our target. In a Projucer
 # project, these might be passed in the 'Preprocessor Definitions' field. JUCE modules also make use
@@ -106,6 +106,8 @@ target_link_libraries(DSPPlugin
     PRIVATE
         # AudioPluginData           # If we'd created a binary data target, we'd link to it here
         juce::juce_audio_utils
+        juce::juce_audio_devices
+        juce::juce_dsp
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
