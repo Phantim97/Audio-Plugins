@@ -22,7 +22,7 @@ public:
 		juce::dsp::Oscillator<T>& osc = processor_chain_.template get<osc_idx>();
 
 		//Custom Sine function
-		//osc.initialise([] (Type x) { return std::sin (x); }, 128)
+		//osc.initialise([](T x) { return std::sin(x); }, 128);
 
 		//Custom Sawtooth function
 		osc.initialise([](T x)
