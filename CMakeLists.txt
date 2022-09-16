@@ -9,4 +9,5 @@ find_package(JUCE CONFIG REQUIRED)        # If you've installed JUCE to your sys
 
 add_subdirectory("Basic Plugin")
 add_subdirectory("DSP Plugin")
-add_subdirectory("GUI Plugin")
+add_subdirectory("Gui Plugin")
+add_subdirectory("Gui Advanced")
