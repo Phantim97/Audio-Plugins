@@ -7,5 +7,6 @@ include_directories($ENV{LIBS_PATH}/JUCE/build/install/include/JUCE-6.1.5/module
 set(JUCE_DIR $ENV{LIBS_PATH}/JUCE/build/install/lib/cmake/JUCE-6.1.5)
 find_package(JUCE CONFIG REQUIRED)        # If you've installed JUCE to your system
 
-# add_subdirectory("Basic Plugin")
+add_subdirectory("Basic Plugin")
 add_subdirectory("DSP Plugin")
+add_subdirectory("GUI Plugin")
