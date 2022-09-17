@@ -52,7 +52,7 @@ public:
 
 	void resized() override
 	{
-		juce::Rectangle<int> area =getLocalBounds();
+		juce::Rectangle<int> area = getLocalBounds();
 
 		constexpr int header_footer_height = 36;
 		header_.setBounds(area.removeFromTop(header_footer_height));
